@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 	"sync"
@@ -15,6 +16,10 @@ import (
 	"github.com/open-sauced/pizza-cli/pkg/constants"
 	"github.com/open-sauced/pizza-cli/pkg/utils"
 	"github.com/spf13/cobra"
+)
+
+var (
+	ErrRepositoryNotFound = errors.New("repository is either non-existent or has not been indexed yet")
 )
 
 type contributorsOptions struct {
@@ -186,7 +191,7 @@ func findRepositoryByOwnerAndRepoName(ctx context.Context, apiClient *client.API
 		if response != nil && response.StatusCode == http.StatusNotFound {
 			message := fmt.Sprintf("repository %s is either non-existent or has not been indexed yet", repoURL)
 			fmt.Println("ignoring repository issue:", message)
-			return nil, nil
+			return nil, ErrRepositoryNotFound
 		}
 		return nil, fmt.Errorf("error while calling 'RepositoryServiceAPI.FindOneByOwnerAndRepo' with owner %q and repo %q: %w", owner, repoName, err)
 	}
@@ -196,7 +201,12 @@ func findRepositoryByOwnerAndRepoName(ctx context.Context, apiClient *client.API
 func findAllContributorsInsights(ctx context.Context, opts *contributorsOptions, repoURL string) (*contributorsInsights, error) {
 	repo, err := findRepositoryByOwnerAndRepoName(ctx, opts.APIClient, repoURL)
 	if err != nil {
-		return nil, fmt.Errorf("could not get contributors insights for repository %s: %w", repoURL, err)
+		switch {
+		case errors.Is(err, ErrRepositoryNotFound):
+			os.Exit(1)
+		default:
+			return nil, fmt.Errorf("could not get contributors insights for repository %s: %w", repoURL, err)
+		}
 	}
 	if repo == nil {
 		return nil, nil
