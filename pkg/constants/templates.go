@@ -1,5 +1,7 @@
 package constants
 
+//reand
+
 const (
 	HelpTemplate = `
 {{with (or .Long .Short)}}{{. | trimTrailingWhitespaces}}
