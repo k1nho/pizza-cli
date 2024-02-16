@@ -78,11 +78,11 @@ func (m DashboardModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		WindowSize = msg
 
 	case ErrMsg:
-		fmt.Printf("Failed to retrieve contributors table data: %s", msg.err.Error())
+		fmt.Printf("Failed to retrieve contributors table data")
 		return m, tea.Quit
 
 	case ContributorErrMsg:
-		m.contributorErr = fmt.Sprintf("🚧 could not fetch %s: %s", msg.name, msg.err.Error())
+		m.contributorErr = fmt.Sprintf("🚧 could not fetch user: %s", msg.name)
 	default:
 		m.contributorErr = ""
 
